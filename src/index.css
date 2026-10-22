@@ -231,6 +231,76 @@ h2 {
   animation: promptAppear 0.6s ease both;
 }
 
+.question-timer {
+  position: relative;
+  width: 100%;
+  margin: -4px 0 26px;
+  padding: 28px 0 0;
+}
+
+.question-timer-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(84, 61, 52, 0.12);
+  box-shadow: inset 0 1px 3px rgba(80, 47, 35, 0.12);
+}
+
+.question-timer-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #e7a36d, #e0655b);
+  animation: questionTimerFill 5s linear forwards;
+}
+
+.question-timer-runner {
+  position: absolute;
+  top: -28px;
+  left: 0;
+  width: 58px;
+  height: 48px;
+  transform: translateX(-50%);
+  animation: questionTimerRun 5s linear forwards;
+}
+
+.question-timer-runner img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  animation: mascotFrame 0.7s steps(1, end) infinite;
+}
+
+.question-timer-runner img:nth-child(1) { opacity: 1; }
+.question-timer-runner img:nth-child(2) { animation-delay: -0.1s; }
+.question-timer-runner img:nth-child(3) { animation-delay: -0.2s; }
+.question-timer-runner img:nth-child(4) { animation-delay: -0.3s; }
+.question-timer-runner img:nth-child(5) { animation-delay: -0.4s; }
+.question-timer-runner img:nth-child(6) { animation-delay: -0.5s; }
+.question-timer-runner img:nth-child(7) { animation-delay: -0.6s; }
+
+.question-timer-stopped .question-timer-fill,
+.question-timer-stopped .question-timer-runner,
+.question-timer-stopped .question-timer-runner img {
+  animation-play-state: paused;
+}
+
+@keyframes questionTimerFill {
+  to { width: 100%; }
+}
+
+@keyframes questionTimerRun {
+  to { left: 100%; }
+}
+
+@keyframes mascotFrame {
+  0%, 14.28% { opacity: 1; }
+  14.29%, 100% { opacity: 0; }
+}
+
 .options-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

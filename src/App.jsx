@@ -5,6 +5,13 @@ import buttonTorii from './assets/buttons/torii.png';
 import buttonWaves from './assets/buttons/waves.png';
 import buttonGeisha from './assets/buttons/ninja.png';
 import buttonSamurai from './assets/buttons/samurai.png';
+import progressMascot1 from './assets/progress/1.png';
+import progressMascot2 from './assets/progress/2.png';
+import progressMascot3 from './assets/progress/3.png';
+import progressMascot4 from './assets/progress/4.png';
+import progressMascot5 from './assets/progress/5.png';
+import progressMascot6 from './assets/progress/6.png';
+import progressMascot7 from './assets/progress/7.png';
 import ProgressIndicator from './ProgressIndicator';
 import { hiraganaChars } from './data/hiragana';
 import { katakanaChars } from './data/katakana';
@@ -15,6 +22,7 @@ import { katakanaExtraChars } from './data/katakana-extra';
 
 const buttonBackgrounds = [buttonBamboo, buttonKoi, buttonTorii, buttonWaves, buttonSamurai, buttonGeisha];
 const SHORT_MODE_COUNT = 15;
+const QUESTION_TIME_LIMIT = 5000;
 
 const formatTime = (totalSeconds) => {
   const minutes = Math.floor(totalSeconds / 60);
@@ -29,6 +37,7 @@ const [quizMode, setQuizMode] = useState(null); // 'short' | 'full'
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [feedback, setFeedback] = useState(null);
+  const [timedOut, setTimedOut] = useState(false);
   const [score, setScore] = useState(0);
   const [showCards, setShowCards] = useState(true);
   const [answersState, setAnswersState] = useState([]);
@@ -68,6 +77,7 @@ const startQuiz = (mode) => {
   setCurrentIndex(0);
   setSelectedOption(null);
   setFeedback(null);
+  setTimedOut(false);
   setScore(0);
   setShowCards(true);
   setAnswersState([]);
@@ -88,6 +98,23 @@ useEffect(() => {
 }, [stage]);
 
 useEffect(() => {
+  if (stage !== 'quiz' || selectedOption) return;
+
+  const timer = window.setTimeout(() => {
+    setSelectedOption(currentQuestion.correct);
+    setFeedback('incorrect');
+    setTimedOut(true);
+    setAnswersState((prev) => {
+      const next = [...prev];
+      next[currentIndex] = 'incorrect';
+      return next;
+    });
+  }, QUESTION_TIME_LIMIT);
+
+  return () => window.clearTimeout(timer);
+}, [stage, currentIndex, selectedOption, currentQuestion]);
+
+useEffect(() => {
   if (!selectedOption) return;
 
   const timer = window.setTimeout(() => {
@@ -103,6 +130,7 @@ useEffect(() => {
       setCurrentIndex((prev) => prev + 1);
       setSelectedOption(null);
       setFeedback(null);
+      setTimedOut(false);
       setShowCards(true);
     }, 450);
   }, 900);
@@ -116,6 +144,7 @@ useEffect(() => {
     const isCorrect = option.value === currentQuestion.correct;
     setSelectedOption(option.value);
     setFeedback(isCorrect ? 'correct' : 'incorrect');
+    setTimedOut(false);
 
     if (isCorrect) {
       setScore((prev) => prev + 1);
@@ -284,6 +313,17 @@ if (stage === 'length-select') {
 
         <div className="prompt">{currentQuestion.prompt}</div>
 
+        <div key={currentIndex} className={`question-timer ${selectedOption ? 'question-timer-stopped' : ''}`} aria-label="Время на ответ">
+          <div className="question-timer-track">
+            <div className="question-timer-fill" />
+            <div className="question-timer-runner" aria-hidden="true">
+              {[progressMascot1, progressMascot2, progressMascot3, progressMascot4, progressMascot5, progressMascot6, progressMascot7].map((frame) => (
+                <img key={frame} src={frame} alt="" />
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className={`options-grid ${showCards ? '' : 'cards-exploding'}`}>
           {currentQuestion.options.map((option, index) => {
             const isCorrect = option.value === currentQuestion.correct;
@@ -291,7 +331,7 @@ if (stage === 'length-select') {
             const buttonBg = buttonBackgrounds[index % buttonBackgrounds.length];
             let className = 'option-card';
 
-            if (selectedOption && isSelected && feedback === 'incorrect') {
+            if (selectedOption && isSelected && feedback === 'incorrect' && !timedOut) {
               className += ' wrong';
             }
             if (selectedOption && isCorrect) {
